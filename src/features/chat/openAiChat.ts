@@ -36,18 +36,28 @@ export async function getChatResponseStream(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
+    "Authorization": `Bearer ${apiKey}`,
+    "OpenAI-Beta": "assistants=v2"
   };
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+
+  const request_body = {
+      'assistant_id': process.env.NEXT_PUBLIC_ASSISTANT_ID,
+      'thread': { 
+        'messages':[ 
+          { 'role': "user", 'content': "Hello" }
+        ],
+      },
+      stream: true
+  };
+
+  const res = await fetch("https://api.openai.com/v1/threads/runs", {
     headers: headers,
     method: "POST",
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: messages,
-      stream: true,
-      max_tokens: 200,
-    }),
-  });
+    body: JSON.stringify(
+      request_body
+    ),
+  }); 
+  
 
   const reader = res.body?.getReader();
   if (res.status !== 200 || !reader) {
@@ -57,21 +67,38 @@ export async function getChatResponseStream(
   const stream = new ReadableStream({
     async start(controller: ReadableStreamDefaultController) {
       const decoder = new TextDecoder("utf-8");
+      let buffer = ''
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          const data = decoder.decode(value);
-          const chunks = data
-            .split("data:")
-            .filter((val) => !!val && val.trim() !== "[DONE]");
-          for (const chunk of chunks) {
-            const json = JSON.parse(chunk);
-            const messagePiece = json.choices[0].delta.content;
-            if (!!messagePiece) {
-              controller.enqueue(messagePiece);
+          buffer += decoder.decode(value, { stream: true });
+
+            // SSEの場合、データは "data: " で始まります
+            while (buffer.includes('\n\n')) {
+                const position = buffer.indexOf('\n\n');
+                const message = buffer.slice(0, position);
+                buffer = buffer.slice(position + 2);
+
+                if (message.startsWith('data: ')) {
+                    const data = message.replace('data: ', '').trim();
+                    console.log('SSE Data:', data);
+                    // ここでデータをさらに処理する
+                    controller.enqueue(data);
+                }
             }
-          }
+          // const data = decoder.decode(value);
+          // const chunks = data
+          //   .split("data:")
+          //   .filter((val) => !!val && val.trim() !== "[DONE]");
+          // for (const chunk of chunks) {
+          //   const json = JSON.parse(chunk);
+          //   const messagePiece = json.choices[0].delta.content;
+          //   if (!!messagePiece) {
+          //     controller.enqueue(messagePiece);
+          //   }
+          // }
+            // controller.enqueue(data);
         }
       } catch (error) {
         controller.error(error);

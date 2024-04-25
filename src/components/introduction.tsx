@@ -8,8 +8,8 @@ type Props = {
   onChangeKoeiromapKey: (koeiromapKey: string) => void;
 };
 export const Introduction = ({
-  openAiKey,
-  koeiroMapKey,
+  openAiKey = process.env.NEXT_PUBLIC_OPEN_AI_KEY || "",
+  koeiroMapKey = process.env.NEXT_PUBLIC_KOEIROMAP_API_KEY || "",
   onChangeAiKey,
   onChangeKoeiromapKey,
 }: Props) => {

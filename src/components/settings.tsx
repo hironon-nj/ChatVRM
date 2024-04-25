@@ -60,8 +60,9 @@ export const Settings = ({
             <input
               className="text-ellipsis px-16 py-8 w-col-span-2 bg-surface1 hover:bg-surface1-hover rounded-8"
               type="text"
-              placeholder="sk-..."
-              value={openAiKey}
+              placeholder="sk-......"
+              // value={openAiKey}
+              value={process.env.OPEN_AI_KEY || openAiKey}
               onChange={onChangeAiKey}
             />
             <div>

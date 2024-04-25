@@ -1,6 +1,10 @@
 import { Configuration, OpenAIApi } from "openai";
 
 import type { NextApiRequest, NextApiResponse } from "next";
+import "dotenv";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 type Data = {
   message: string;
