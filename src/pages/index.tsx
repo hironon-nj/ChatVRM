@@ -15,6 +15,7 @@ import { Introduction } from "@/components/introduction";
 import { Menu } from "@/components/menu";
 import { GitHubLink } from "@/components/githubLink";
 import { Meta } from "@/components/meta";
+import { EventComponent } from "@/components/eventCompnent";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -214,6 +215,7 @@ export default function Home() {
         onChangeKoeiromapKey={setKoeiromapKey}
       />
       <GitHubLink />
+      <EventComponent />
     </div>
   );
 }
